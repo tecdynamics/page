@@ -1,5 +1,5 @@
 {
-    "name": "tec/page",
+    "name": "tecdynamics/page",
     "description": "Page package",
     "type": "package",
     "autoload": {
