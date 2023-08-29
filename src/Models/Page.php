@@ -72,6 +72,9 @@ class Page extends BaseModel
         'is_featured',
         'status',
         'user_id',
+        'has_breadcrumb',
+        'extra_config',
+        'is_restricted'
     ];
 
     /**

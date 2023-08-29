@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Menu;
 use RvMedia;
+use Tec\Theme\Theme;
 use Throwable;
 
 class HookServiceProvider extends ServiceProvider
@@ -31,6 +32,7 @@ class HookServiceProvider extends ServiceProvider
 
         if (function_exists('theme_option')) {
             add_action(RENDERING_THEME_OPTIONS_PAGE, [$this, 'addThemeOptions'], 31);
+
         }
 
         if (defined('THEME_FRONT_HEADER')) {
@@ -84,8 +86,22 @@ class HookServiceProvider extends ServiceProvider
                             ],
                         ],
                     ],
+                    [
+                        'id'         => '404_custom_page',
+                        'type'       => 'customSelect',
+                        'label'      => trans('packages/page::pages.404_page'),
+                        'attributes' => [
+                            'name'    => '404_custom_page',
+                            'list'    => ['' => trans('packages/page::pages.settings.select')] + $pages,
+                            'value'   => '',
+                            'options' => [
+                                'class' => 'form-control',
+                            ],
+                        ],
+                    ],
                 ],
             ]);
+        //  if(file_exists($this->app->basePath('themes/').Theme::)){}
     }
 
     /**

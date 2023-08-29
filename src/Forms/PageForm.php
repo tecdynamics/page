@@ -24,6 +24,7 @@ class PageForm extends FormAbstract
             ->setupModel(new Page)
             ->setValidatorClass(PageRequest::class)
             ->withCustomFields()
+
             ->add('name', 'text', [
                 'label'      => trans('core/base::forms.name'),
                 'label_attr' => ['class' => 'control-label required'],
@@ -41,17 +42,13 @@ class PageForm extends FormAbstract
                     'data-counter' => 400,
                 ],
             ])
-            ->add('is_featured', 'onOff', [
-                'label'         => trans('core/base::forms.is_featured'),
-                'label_attr'    => ['class' => 'control-label'],
-                'default_value' => false,
-            ])
             ->add('content', 'editor', [
                 'label'      => trans('core/base::forms.content'),
                 'label_attr' => ['class' => 'control-label required'],
                 'attr'       => [
                     'placeholder'     => trans('core/base::forms.description_placeholder'),
                     'with-short-code' => true,
+                    'with-style' => true,
                 ],
             ])
             ->add('status', 'customSelect', [
@@ -63,6 +60,21 @@ class PageForm extends FormAbstract
                 'label'      => trans('core/base::forms.template'),
                 'label_attr' => ['class' => 'control-label required'],
                 'choices'    => get_page_templates(),
+            ])
+            ->add('is_featured', 'onOff', [
+                'label' => trans('core/base::forms.is_featured'),
+                'label_attr' => ['class' => 'control-label'],
+                'default_value' => false,
+            ])
+            ->add('has_breadcrumb', 'onOff', [
+                'label' => trans('packages/page::pages.has_breadcrumb'),
+                'label_attr' => ['class' => 'control-label'],
+                'default_value' => true,
+            ])
+            ->add('is_restricted', 'onOff', [
+                'label' => trans('packages/page::pages.is_restricted'),
+                'label_attr' => ['class' => 'control-label'],
+                'default_value' => false,
             ])
             ->add('image', 'mediaImage', [
                 'label'      => trans('core/base::forms.image'),

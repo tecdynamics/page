@@ -2,6 +2,8 @@
 
 return [
     'create'         => 'Create new page',
+    'has_breadcrumb' => 'Breadcrumbs Enabled',
+    'is_restricted'  => 'Page is Restricted',
     'edit'           => 'Edit page',
     'form'           => [
         'name'             => 'Name',
@@ -25,4 +27,5 @@ return [
         'select'        => '— Select —',
     ],
     'front_page'     => 'Front Page',
+    '404_page'     => '404 Page',
 ];

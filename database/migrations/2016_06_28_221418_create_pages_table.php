@@ -11,6 +11,7 @@ return new class extends Migration {
      */
     public function up()
     {
+        if (!Schema::hasTable('pages')){
         Schema::create('pages', function (Blueprint $table) {
             $table->id();
             $table->string('name', 120);
@@ -23,6 +24,7 @@ return new class extends Migration {
             $table->string('status', 60)->default('published');
             $table->timestamps();
         });
+    }
     }
 
     /**
