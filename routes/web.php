@@ -8,6 +8,10 @@ Route::group(['namespace' => 'Tec\Page\Http\Controllers', 'middleware' => ['web'
 
         Route::group(['prefix' => 'pages', 'as' => 'pages.'], function () {
             Route::resource('', 'PageController')->parameters(['' => 'page']);
+            Route::get('duplicate/{key}', [
+                'as' => 'duplicatepage',
+                'uses' => 'PageController@DuplicatePage',
+            ]);
 
             Route::delete('items/destroy', [
                 'as'         => 'deletes',

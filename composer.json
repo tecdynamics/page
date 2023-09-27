@@ -7,10 +7,7 @@
             "Tec\\Page\\": "src"
         }
     },
-"require": {
-        "tecdynamics/platform": "*@dev",
-        "tecdynamics/revision": "*@dev"
-    },
+
     "extra": {
         "laravel": {
             "providers": [

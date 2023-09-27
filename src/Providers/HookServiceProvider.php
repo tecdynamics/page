@@ -53,7 +53,7 @@ class HookServiceProvider extends ServiceProvider
                         ],
                     ];
 
-                    return $html . Html::tag('script', json_encode($schema), ['type' => 'application/ld+json'])
+                    return $html . Html::element('script', json_encode($schema), ['type' => 'application/ld+json'])
                             ->toHtml();
                 }, 2);
             }, 2, 2);
@@ -101,7 +101,7 @@ class HookServiceProvider extends ServiceProvider
                     ],
                 ],
             ]);
-        //  if(file_exists($this->app->basePath('themes/').Theme::)){}
+      //  if(file_exists($this->app->basePath('themes/').Theme::)){}
     }
 
     /**

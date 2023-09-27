@@ -2,6 +2,7 @@
 
 namespace Tec\Page\Http\Controllers;
 
+use Assets;
 use Tec\Base\Events\BeforeEditContentEvent;
 use Tec\Base\Events\CreatedContentEvent;
 use Tec\Base\Events\DeletedContentEvent;
@@ -10,6 +11,7 @@ use Tec\Base\Forms\FormBuilder;
 use Tec\Base\Http\Controllers\BaseController;
 use Tec\Base\Http\Responses\BaseHttpResponse;
 use Tec\Base\Traits\HasDeleteManyItemsTrait;
+use Tec\LanguageAdvanced\Models\PageTranslation;
 use Tec\Page\Forms\PageForm;
 use Tec\Page\Http\Requests\PageRequest;
 use Tec\Page\Repositories\Interfaces\PageInterface;
@@ -49,10 +51,29 @@ class PageController extends BaseController
     public function index(PageTable $dataTable)
     {
         page_title()->setTitle(trans('packages/page::pages.menu_name'));
-
+        Assets::addScriptsDirectly(['vendor/core/core/base/js/admin_duplicate.js'],'header');
         return $dataTable->renderTable();
     }
 
+    public function DuplicatePage($id, Request $request){
+
+        if((int)$id<1) return redirect(route('pages.index'));
+        $menu =  $this->pageRepository->getModel()::where('id','=',$id)->firstOrFail();
+        $PageTranslation=new PageTranslation();
+        $pagetrans = $PageTranslation->getModel()::where('pages_id','=',$id)->get();
+        $new = $menu->replicate();
+        $new->name=$request->input('name','Copy Page');
+        $new->save();
+        if($pagetrans->count()>0) {
+            foreach ($pagetrans as $pagetran) {
+                $newreplica = $pagetran->replicate();
+                $newreplica->name = $request->input('name', 'Copy Page');
+                $newreplica->pages_id = $new->id;
+                $newreplica->save();
+            }
+        }
+        return redirect(route('pages.index'));
+    }
     /**
      * @return string
      */

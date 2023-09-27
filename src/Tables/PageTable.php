@@ -56,11 +56,11 @@ class PageTable extends TableAbstract
                 if (!Auth::user()->hasPermission('posts.edit')) {
                     $name = $item->name;
                 } else {
-                    $name = Html::link(route('pages.edit', $item->id), $item->name);
+                    $name = Html::a(route('pages.edit', $item->id), $item->name);
                 }
 
                 if (function_exists('theme_option') && BaseHelper::isHomepage($item->id)) {
-                    $name .= Html::tag('span', ' — ' . trans('packages/page::pages.front_page'), [
+                    $name .= Html::element('span', ' — ' . trans('packages/page::pages.front_page'), [
                         'class' => 'additional-page-name',
                     ])->toHtml();
                 }
@@ -80,7 +80,9 @@ class PageTable extends TableAbstract
                 return $item->status->toHtml();
             })
             ->addColumn('operations', function ($item) {
-                return $this->getOperations('pages.edit', 'pages.destroy', $item);
+                $extra='<a href="#" url="'.route('pages.duplicatepage', $item->id).'"  id="duplicate" class="btn btn-icon btn-sm btn-success" data-bs-toggle="tooltip" data-bs-original-title="Duplicate"><i class="fa fa-clone"></i></a>';
+
+                 return $this->getOperations('pages.edit', 'pages.destroy', $item,$extra);
             });
 
         return $this->toJson($data);
