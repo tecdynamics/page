@@ -3,6 +3,7 @@
 namespace Tec\Page\Tables;
 
 use BaseHelper;
+use Illuminate\Http\JsonResponse;
 use Tec\Base\Enums\BaseStatusEnum;
 use Tec\Page\Repositories\Interfaces\PageInterface;
 use Tec\Table\Abstracts\TableAbstract;
@@ -46,7 +47,7 @@ class PageTable extends TableAbstract
     /**
      * {@inheritDoc}
      */
-    public function ajax()
+    public function ajax(): JsonResponse
     {
         $pageTemplates = get_page_templates();
 
@@ -56,11 +57,11 @@ class PageTable extends TableAbstract
                 if (!Auth::user()->hasPermission('posts.edit')) {
                     $name = $item->name;
                 } else {
-                    $name = Html::a(route('pages.edit', $item->id), $item->name);
+                    $name = Html::link(route('pages.edit', $item->id), $item->name);
                 }
 
                 if (function_exists('theme_option') && BaseHelper::isHomepage($item->id)) {
-                    $name .= Html::element('span', ' — ' . trans('packages/page::pages.front_page'), [
+                    $name .= Html::tag('span', ' — ' . trans('packages/page::pages.front_page'), [
                         'class' => 'additional-page-name',
                     ])->toHtml();
                 }
@@ -107,7 +108,7 @@ class PageTable extends TableAbstract
     /**
      * {@inheritDoc}
      */
-    public function columns()
+    public function columns(): array
     {
         return [
             'id'         => [
