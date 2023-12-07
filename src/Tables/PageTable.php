@@ -2,7 +2,10 @@
 
 namespace Tec\Page\Tables;
 
+use Illuminate\Support\Facades\Auth;
 use Tec\Base\Enums\BaseStatusEnum;
+use Tec\Base\Facades\BaseHelper;
+use Tec\Base\Facades\Html;
 use Tec\Page\Models\Page;
 use Tec\Table\Abstracts\TableAbstract;
 use Tec\Table\Actions\DeleteAction;
@@ -85,8 +88,7 @@ class PageTable extends TableAbstract
                     'created_at',
                     'status',
                 ]);
-            })
-            ->onAjax(function (): JsonResponse {
+            })->onAjax(function (): JsonResponse {
                 return $this->toJson(
                     $this
                         ->table
@@ -101,6 +103,7 @@ class PageTable extends TableAbstract
                 );
             });
     }
+
 
     public function buttons(): array
     {
