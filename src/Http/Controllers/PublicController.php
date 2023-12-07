@@ -4,24 +4,18 @@ namespace Tec\Page\Http\Controllers;
 
 use Tec\Page\Models\Page;
 use Tec\Page\Services\PageService;
+use Tec\Slug\Facades\SlugHelper;
 use Tec\Theme\Events\RenderingSingleEvent;
+use Tec\Theme\Facades\Theme;
 use Illuminate\Routing\Controller;
-use Response;
-use SlugHelper;
-use Theme;
 
 class PublicController extends Controller
 {
-    /**
-     * @param string $slug
-     * @param PageService $pageService
-     * @return \Illuminate\Http\RedirectResponse|Response
-     */
-    public function getPage($slug, PageService $pageService)
+    public function getPage(string $slug, PageService $pageService)
     {
         $slug = SlugHelper::getSlug($slug, SlugHelper::getPrefix(Page::class));
 
-        if (!$slug) {
+        if (! $slug) {
             abort(404);
         }
 

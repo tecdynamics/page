@@ -9,20 +9,14 @@ use Illuminate\Validation\Rule;
 
 class PageRequest extends Request
 {
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'name'        => 'required|max:120',
-            'description' => 'max:400',
-            'content'     => 'required',
-            'template'    => Rule::in(array_keys(Template::getPageTemplates())),
-            'status'      => Rule::in(BaseStatusEnum::values()),
+            'name' => 'required|string|max:120',
+            'description' => 'nullable|string|max:400',
+            'content' => 'nullable|string',
+            'template' => Rule::in(array_keys(Template::getPageTemplates())),
+            'status' => Rule::in(BaseStatusEnum::values()),
         ];
     }
 }

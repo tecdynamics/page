@@ -2,37 +2,29 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
+return new class () extends Migration {
+    public function up(): void
     {
-        if (!Schema::hasTable('pages')){
         Schema::create('pages', function (Blueprint $table) {
             $table->id();
             $table->string('name', 120);
             $table->longText('content')->nullable();
-            $table->integer('user_id')->references('id')->on('users');
+            $table->foreignId('user_id')->index()->nullable();
             $table->string('image', 255)->nullable();
             $table->string('template', 60)->nullable();
             $table->tinyInteger('is_featured')->default(0);
             $table->string('description', 400)->nullable();
             $table->string('status', 60)->default('published');
+            $table->longText('extra_config')->nullable();
+            $table->tinyInteger('has_breadcrumb')->nullable()->default(1);
+            $table->tinyInteger('is_restricted')->nullable()->default(0);
             $table->timestamps();
         });
     }
-    }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('pages');
     }

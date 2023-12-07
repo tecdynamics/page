@@ -2,47 +2,29 @@
 
 namespace Tec\Page\Repositories\Eloquent;
 
-use Tec\Base\Enums\BaseStatusEnum;
 use Tec\Page\Repositories\Interfaces\PageInterface;
 use Tec\Support\Repositories\Eloquent\RepositoriesAbstract;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class PageRepository extends RepositoriesAbstract implements PageInterface
 {
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getDataSiteMap()
+    public function getDataSiteMap(): Collection
     {
         $data = $this->model
-            ->where('status', BaseStatusEnum::PUBLISHED)
-            ->orderBy('created_at', 'desc');
+            ->wherePublished()
+            ->orderByDesc('created_at')
+            ->select(['id', 'name', 'updated_at'])
+            ->with('slugable');
 
         return $this->applyBeforeExecuteQuery($data)->get();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getFeaturedPages($limit)
-    {
-        $data = $this->model
-            ->where(['status' => BaseStatusEnum::PUBLISHED, 'is_featured' => 1])
-            ->orderBy('created_at')
-            ->limit($limit)
-            ->orderBy('created_at', 'desc');
-
-        return $this->applyBeforeExecuteQuery($data)->get();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function whereIn($array, $select = [])
+    public function whereIn(array $array, array $select = []): Collection
     {
         $pages = $this->model
             ->whereIn('id', $array)
-            ->where('status', BaseStatusEnum::PUBLISHED);
+            ->wherePublished();
 
         if (empty($select)) {
             $select = ['*'];
@@ -55,32 +37,26 @@ class PageRepository extends RepositoriesAbstract implements PageInterface
         return $this->applyBeforeExecuteQuery($data)->get();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getSearch($query, $limit = 10)
+    public function getSearch(string|null $query, int $limit = 10): Collection|LengthAwarePaginator
     {
-        $pages = $this->model->where('status', BaseStatusEnum::PUBLISHED);
+        $pages = $this->model->wherePublished();
         foreach (explode(' ', $query) as $term) {
             $pages = $pages->where('name', 'LIKE', '%' . $term . '%');
         }
 
         $data = $pages
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
             ->limit($limit);
 
         return $this->applyBeforeExecuteQuery($data)->get();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getAllPages($active = true)
+    public function getAllPages(bool $active = true): Collection
     {
         $data = $this->model;
 
         if ($active) {
-            $data = $data->where('status', BaseStatusEnum::PUBLISHED);
+            $data = $data->wherePublished();
         }
 
         return $this->applyBeforeExecuteQuery($data)->get();

@@ -3,37 +3,16 @@
 namespace Tec\Page\Repositories\Interfaces;
 
 use Tec\Support\Repositories\Interfaces\RepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 interface PageInterface extends RepositoryInterface
 {
+    public function getDataSiteMap(): Collection;
 
-    /**
-     * @return mixed
-     */
-    public function getDataSiteMap();
+    public function whereIn(array $array, array $select = []): Collection;
 
-    /**
-     * @param int $limit
-     */
-    public function getFeaturedPages($limit);
+    public function getSearch(string|null $query, int $limit = 10): Collection|LengthAwarePaginator;
 
-    /**
-     * @param array $array
-     * @param array $select
-     * @return mixed
-     */
-    public function whereIn($array, $select = []);
-
-    /**
-     * @param $query
-     * @param int $limit
-     * @return mixed
-     */
-    public function getSearch($query, $limit = 10);
-
-    /**
-     * @param bool $active
-     * @return mixed
-     */
-    public function getAllPages($active = true);
+    public function getAllPages(bool $active = true): Collection;
 }

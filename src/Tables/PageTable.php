@@ -2,182 +2,108 @@
 
 namespace Tec\Page\Tables;
 
-use BaseHelper;
 use Tec\Base\Enums\BaseStatusEnum;
-use Tec\Page\Repositories\Interfaces\PageInterface;
+use Tec\Page\Models\Page;
 use Tec\Table\Abstracts\TableAbstract;
-use Html;
-use Illuminate\Contracts\Routing\UrlGenerator;
+use Tec\Table\Actions\DeleteAction;
+use Tec\Table\Actions\DublicateAction;
+use Tec\Table\Actions\EditAction;
+use Tec\Table\BulkActions\DeleteBulkAction;
+use Tec\Table\Columns\Column;
+use Tec\Table\Columns\CreatedAtColumn;
+use Tec\Table\Columns\IdColumn;
+use Tec\Table\Columns\NameColumn;
+use Tec\Table\Columns\StatusColumn;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-use Yajra\DataTables\DataTables;
 
 class PageTable extends TableAbstract
 {
-    /**
-     * @var bool
-     */
-    protected $hasActions = true;
-
-    /**
-     * @var bool
-     */
-    protected $hasFilter = true;
-
-    /**
-     * PageTable constructor.
-     * @param DataTables $table
-     * @param UrlGenerator $urlGenerator
-     * @param PageInterface $pageRepository
-     */
-    public function __construct(DataTables $table, UrlGenerator $urlGenerator, PageInterface $pageRepository)
+    public function setup(): void
     {
-        parent::__construct($table, $urlGenerator);
-
-        $this->repository = $pageRepository;
-
-        if (!Auth::user()->hasAnyPermission(['pages.edit', 'pages.destroy'])) {
-            $this->hasOperations = false;
-            $this->hasActions = false;
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function ajax()
-    {
-        $pageTemplates = get_page_templates();
-
-        $data = $this->table
-            ->eloquent($this->query())
-            ->editColumn('name', function ($item) {
-                if (!Auth::user()->hasPermission('posts.edit')) {
-                    $name = $item->name;
-                } else {
-                    $name = Html::a(route('pages.edit', $item->id), $item->name);
-                }
-
-                if (function_exists('theme_option') && BaseHelper::isHomepage($item->id)) {
-                    $name .= Html::element('span', ' — ' . trans('packages/page::pages.front_page'), [
-                        'class' => 'additional-page-name',
-                    ])->toHtml();
-                }
-
-                return apply_filters(PAGE_FILTER_PAGE_NAME_IN_ADMIN_LIST, $name, $item);
+        $this
+            ->model(Page::class)
+            ->addActions([
+                DublicateAction::make()->route('pages.duplicatepage'),
+                EditAction::make()->route('pages.edit'),
+                DeleteAction::make()->route('pages.destroy'),
+            ])
+            ->addColumns([
+                IdColumn::make(),
+                NameColumn::make()->route('pages.edit'),
+                Column::make('template')
+                    ->title(trans('core/base::tables.template'))
+                    ->alignStart(),
+                CreatedAtColumn::make(),
+                StatusColumn::make(),
+            ])
+            ->addBulkActions([
+                DeleteBulkAction::make()->permission('pages.destroy'),
+            ])
+            ->addBulkChanges([
+                'name' => [
+                    'title' => trans('core/base::tables.name'),
+                    'type' => 'text',
+                    'validate' => 'required|max:120',
+                ],
+                'status' => [
+                    'title' => trans('core/base::tables.status'),
+                    'type' => 'customSelect',
+                    'choices' => BaseStatusEnum::labels(),
+                    'validate' => 'required|' . Rule::in(BaseStatusEnum::values()),
+                ],
+                'template' => [
+                    'title' => trans('core/base::tables.template'),
+                    'type' => 'customSelect',
+                    'choices' => get_page_templates(),
+                    'validate' => 'required',
+                ],
+                'has_breadcrumb' => [
+                    'title' => 'Has Breadcrumb',
+                    'type' => 'customSelect',
+                    'choices' => [1=>'Yes',0=>'No'],
+                    'validate' => 'false',
+                ],
+                'is_restricted' => [
+                    'title' => 'Is Restricted',
+                    'type' => 'customSelect',
+                    'choices' =>  [1=>'Yes',0=>'No'],
+                    'validate' => 'false',
+                ],
+                'created_at' => [
+                    'title' => trans('core/base::tables.created_at'),
+                    'type' => 'datePicker',
+                ],
+            ])
+            ->queryUsing(function (Builder $query) {
+                $query->select([
+                    'id',
+                    'name',
+                    'template',
+                    'created_at',
+                    'status',
+                ]);
             })
-            ->editColumn('checkbox', function ($item) {
-                return $this->getCheckbox($item->id);
-            })
-            ->editColumn('template', function ($item) use ($pageTemplates) {
-                return Arr::get($pageTemplates, $item->template);
-            })
-            ->editColumn('created_at', function ($item) {
-                return BaseHelper::formatDate($item->created_at);
-            })
-            ->editColumn('status', function ($item) {
-                return $item->status->toHtml();
-            })
-            ->addColumn('operations', function ($item) {
-                $extra='<a href="#" url="'.route('pages.duplicatepage', $item->id).'"  id="duplicate" class="btn btn-icon btn-sm btn-success" data-bs-toggle="tooltip" data-bs-original-title="Duplicate"><i class="fa fa-clone"></i></a>';
+            ->onAjax(function (): JsonResponse {
+                return $this->toJson(
+                    $this
+                        ->table
+                        ->eloquent($this->query())
+                        ->editColumn('template', function (Page $item) {
+                            static $pageTemplates;
 
-                 return $this->getOperations('pages.edit', 'pages.destroy', $item,$extra);
+                            $pageTemplates ??= get_page_templates();
+
+                            return Arr::get($pageTemplates, $item->template ?: 'default');
+                        })
+                );
             });
-
-        return $this->toJson($data);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function query()
-    {
-        $query = $this->repository->getModel()->select([
-            'id',
-            'name',
-            'template',
-            'created_at',
-            'status',
-        ]);
-
-        return $this->applyScopes($query);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function columns()
-    {
-        return [
-            'id'         => [
-                'title' => trans('core/base::tables.id'),
-                'width' => '20px',
-            ],
-            'name'       => [
-                'title' => trans('core/base::tables.name'),
-                'class' => 'text-start',
-            ],
-            'template'   => [
-                'title' => trans('core/base::tables.template'),
-                'class' => 'text-start',
-            ],
-            'created_at' => [
-                'title' => trans('core/base::tables.created_at'),
-                'width' => '100px',
-                'class' => 'text-center',
-            ],
-            'status'     => [
-                'title' => trans('core/base::tables.status'),
-                'width' => '100px',
-                'class' => 'text-center',
-            ],
-        ];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function buttons()
+    public function buttons(): array
     {
         return $this->addCreateButton(route('pages.create'), 'pages.create');
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function bulkActions(): array
-    {
-        return $this->addDeleteAction(route('pages.deletes'), 'pages.destroy', parent::bulkActions());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getBulkChanges(): array
-    {
-        return [
-            'name'       => [
-                'title'    => trans('core/base::tables.name'),
-                'type'     => 'text',
-                'validate' => 'required|max:120',
-            ],
-            'status'     => [
-                'title'    => trans('core/base::tables.status'),
-                'type'     => 'customSelect',
-                'choices'  => BaseStatusEnum::labels(),
-                'validate' => 'required|' . Rule::in(BaseStatusEnum::values()),
-            ],
-            'template'   => [
-                'title'    => trans('core/base::tables.template'),
-                'type'     => 'customSelect',
-                'choices'  => get_page_templates(),
-                'validate' => 'required',
-            ],
-            'created_at' => [
-                'title' => trans('core/base::tables.created_at'),
-                'type'  => 'date',
-            ],
-        ];
     }
 }

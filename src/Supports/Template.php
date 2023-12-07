@@ -2,16 +2,12 @@
 
 namespace Tec\Page\Supports;
 
-use Theme;
+use Tec\Base\Facades\BaseHelper;
+use Tec\Theme\Facades\Theme;
 
 class Template
 {
-    /**
-     * @param array $templates
-     * @return void
-     * @since 16-09-2016
-     */
-    public static function registerPageTemplate($templates = [])
+    public static function registerPageTemplate(array $templates = []): void
     {
         $validTemplates = [];
         foreach ($templates as $key => $template) {
@@ -21,18 +17,16 @@ class Template
         }
 
         config([
-            'packages.page.general.templates' => array_merge(config('packages.page.general.templates'),
-                $validTemplates),
+            'packages.page.general.templates' => array_merge(
+                config('packages.page.general.templates'),
+                $validTemplates
+            ),
         ]);
     }
 
-    /**
-     * @return array
-     * @since 16-09-2016
-     */
-    protected static function getExistsTemplate()
+    protected static function getExistsTemplate(): array
     {
-        $files = scan_folder(theme_path(Theme::getThemeName() . DIRECTORY_SEPARATOR . config('packages.theme.general.containerDir.layout')));
+        $files = BaseHelper::scanFolder(theme_path(Theme::getThemeName() . DIRECTORY_SEPARATOR . config('packages.theme.general.containerDir.layout')));
         foreach ($files as $key => $file) {
             $files[$key] = str_replace('.blade.php', '', $file);
         }
@@ -40,12 +34,8 @@ class Template
         return $files;
     }
 
-    /**
-     * @return array
-     * @since 16-09-2016
-     */
-    public static function getPageTemplates()
+    public static function getPageTemplates(): array
     {
-        return config('packages.page.general.templates', []);
+        return (array)config('packages.page.general.templates', []);
     }
 }

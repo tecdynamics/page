@@ -2,36 +2,33 @@
 
 namespace Tec\Page\Services;
 
-use BaseHelper;
 use Tec\Base\Enums\BaseStatusEnum;
+use Tec\Base\Facades\BaseHelper;
+use Tec\Base\Supports\RepositoryHelper;
+use Tec\Media\Facades\RvMedia;
 use Tec\Page\Models\Page;
-use Tec\Page\Repositories\Interfaces\PageInterface;
+use Tec\SeoHelper\Facades\SeoHelper;
 use Tec\SeoHelper\SeoOpenGraph;
-use Eloquent;
+use Tec\Slug\Models\Slug;
+use Tec\Theme\Facades\Theme;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
-use RvMedia;
-use SeoHelper;
-use Theme;
 
 class PageService
 {
-    /**
-     * @param Eloquent $slug
-     * @return array|Eloquent
-     */
-    public function handleFrontRoutes($slug)
+    public function handleFrontRoutes(Slug|array $slug): Slug|array|Builder
     {
-        if (!$slug instanceof Eloquent) {
+        if (! $slug instanceof Slug) {
             return $slug;
         }
 
         $condition = [
-            'id'     => $slug->reference_id,
+            'id' => $slug->reference_id,
             'status' => BaseStatusEnum::PUBLISHED,
         ];
 
-        if (Auth::check() && request()->input('preview')) {
+        if (Auth::guard()->check() && request()->input('preview')) {
             Arr::forget($condition, 'status');
         }
 
@@ -39,25 +36,34 @@ class PageService
             return $slug;
         }
 
-        $page = app(PageInterface::class)->getFirstBy($condition, ['*'], ['slugable']);
+        $page = Page::query()
+            ->where($condition)
+            ->with('slugable');
+
+        $page = RepositoryHelper::applyBeforeExecuteQuery($page, new Page(), true)->first();
 
         if (empty($page)) {
+            if ($slug->reference_id == BaseHelper::getHomepageId()) {
+                return [];
+            }
+
             abort(404);
         }
 
-        $meta = new SeoOpenGraph;
+        $meta = new SeoOpenGraph();
+
         if ($page->image) {
             $meta->setImage(RvMedia::getImageUrl($page->image));
         }
 
-        if (!BaseHelper::isHomepage($page->id)) {
+        if (! BaseHelper::isHomepage($page->getKey())) {
             SeoHelper::setTitle($page->name)
                 ->setDescription($page->description);
 
             $meta->setTitle($page->name);
             $meta->setDescription($page->description);
         } else {
-            $siteTitle = theme_option('seo_title') ? theme_option('seo_title') : theme_option('site_title');
+            $siteTitle = theme_option('seo_title') ?: theme_option('site_title');
             $seoDescription = theme_option('seo_description');
 
             SeoHelper::setTitle($siteTitle)
@@ -72,27 +78,33 @@ class PageService
 
         SeoHelper::setSeoOpenGraph($meta);
 
+        SeoHelper::meta()->setUrl($page->url);
+
         if ($page->template) {
             Theme::uses(Theme::getThemeName())
                 ->layout($page->template);
         }
 
-        if (function_exists('admin_bar') && Auth::check() && Auth::user()->hasPermission('pages.edit')) {
+        if (function_exists('admin_bar')) {
             admin_bar()
-                ->registerLink(trans('packages/page::pages.edit_this_page'), route('pages.edit', $page->id));
+                ->registerLink(trans('packages/page::pages.edit_this_page'), route('pages.edit', $page->getKey()), null, 'pages.edit');
+        }
+
+        if (function_exists('shortcode')) {
+            shortcode()->getCompiler()->setEditLink(route('pages.edit', $page->getKey()), 'pages.edit');
         }
 
         do_action(BASE_ACTION_PUBLIC_RENDER_SINGLE, PAGE_MODULE_SCREEN_NAME, $page);
 
         Theme::breadcrumb()
             ->add(__('Home'), route('public.index'))
-            ->add(SeoHelper::getTitle(), $page->url);
+            ->add($page->name, $page->url);
 
         return [
-            'view'         => 'page',
+            'view' => 'page',
             'default_view' => 'packages/page::themes.page',
-            'data'         => compact('page'),
-            'slug'         => $page->slug,
+            'data' => compact('page'),
+            'slug' => $page->slug,
         ];
     }
 }
