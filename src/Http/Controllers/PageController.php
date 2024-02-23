@@ -15,6 +15,7 @@ use Tec\LanguageAdvanced\Models\PageTranslation;
 use Tec\Page\Forms\PageForm;
 use Tec\Page\Http\Requests\PageRequest;
 use Tec\Page\Models\Page;
+use Tec\Page\Repositories\Interfaces\PageInterface;
 use Tec\Page\Tables\PageTable;
 use Exception;
 use Illuminate\Http\Request;
@@ -22,6 +23,15 @@ use Illuminate\Support\Facades\Auth;
 
 class PageController extends BaseController
 {
+    /**
+     * @var PageInterface
+     */
+    protected $pageRepository;
+    public function __construct(PageInterface $pageRepository)
+    {
+        $this->pageRepository = $pageRepository;
+    }
+
     public function index(PageTable $dataTable)
     {
         page_title()->setTitle(trans('packages/page::pages.menu_name'));
@@ -71,8 +81,9 @@ class PageController extends BaseController
             ->setMessage(trans('core/base::notices.create_success_message'));
     }
 
-    public function edit(Page $page, FormBuilder $formBuilder)
+    public function edit($id, FormBuilder $formBuilder)
     {
+        $page  = $this->pageRepository->findOrFail($id);
         PageTitle::setTitle(trans('core/base::forms.edit_item', ['name' => $page->name]));
 
         return $formBuilder->create(PageForm::class, ['model' => $page])->renderForm();

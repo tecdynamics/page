@@ -6,6 +6,7 @@ use Tec\ACL\Models\User;
 use Tec\Base\Casts\SafeContent;
 use Tec\Base\Enums\BaseStatusEnum;
 use Tec\Base\Models\BaseModel;
+use Tec\Base\Traits\EnumCastable;
 use Tec\Revision\RevisionableTrait;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

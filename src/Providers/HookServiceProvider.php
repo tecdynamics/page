@@ -101,6 +101,19 @@ class HookServiceProvider extends ServiceProvider
                             ],
                         ],
                     ],
+                    [
+                        'id'         => '404_custom_page',
+                        'type'       => 'customSelect',
+                        'label'      => trans('packages/page::pages.404_page'),
+                        'attributes' => [
+                            'name'    => '404_custom_page',
+                            'list'    => ['' => trans('packages/page::pages.settings.select')] + $pages,
+                            'value'   => '',
+                            'options' => [
+                                'class' => 'form-control',
+                            ],
+                        ],
+                    ],
                 ],
             ]);
     }

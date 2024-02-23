@@ -5,6 +5,7 @@ namespace Tec\Page\Providers;
 use Tec\Base\Facades\DashboardMenu;
 use Tec\Base\Supports\ServiceProvider;
 use Tec\Base\Traits\LoadAndPublishDataTrait;
+use Tec\Page\Http\Middleware\IsRestrictedMiddleware;
 use Tec\Page\Models\Page;
 use Tec\Page\Repositories\Eloquent\PageRepository;
 use Tec\Page\Repositories\Interfaces\PageInterface;
@@ -13,9 +14,7 @@ use Tec\Theme\Facades\AdminBar;
 use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Support\Facades\View as ViewFacade;
 
-/**
- * @since 02/07/2016 09:50 AM
- */
+
 class PageServiceProvider extends ServiceProvider
 {
     use LoadAndPublishDataTrait;
@@ -68,6 +67,8 @@ class PageServiceProvider extends ServiceProvider
 
         $this->app->booted(function () {
             $this->app->register(HookServiceProvider::class);
+            $router = $this->app['router'];
+            $router->pushMiddlewareToGroup('web', IsRestrictedMiddleware::class);
         });
 
         $this->app->register(EventServiceProvider::class);
