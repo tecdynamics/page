@@ -12,6 +12,10 @@ use Tec\Table\Actions\DeleteAction;
 use Tec\Table\Actions\DublicateAction;
 use Tec\Table\Actions\EditAction;
 use Tec\Table\BulkActions\DeleteBulkAction;
+use Tec\Table\BulkChanges\CreatedAtBulkChange;
+use Tec\Table\BulkChanges\NameBulkChange;
+use Tec\Table\BulkChanges\SelectBulkChange;
+use Tec\Table\BulkChanges\StatusBulkChange;
 use Tec\Table\Columns\Column;
 use Tec\Table\Columns\CreatedAtColumn;
 use Tec\Table\Columns\IdColumn;
@@ -46,39 +50,14 @@ class PageTable extends TableAbstract
                 DeleteBulkAction::make()->permission('pages.destroy'),
             ])
             ->addBulkChanges([
-                'name' => [
-                    'title' => trans('core/base::tables.name'),
-                    'type' => 'text',
-                    'validate' => 'required|max:120',
-                ],
-                'status' => [
-                    'title' => trans('core/base::tables.status'),
-                    'type' => 'customSelect',
-                    'choices' => BaseStatusEnum::labels(),
-                    'validate' => 'required|' . Rule::in(BaseStatusEnum::values()),
-                ],
-                'template' => [
-                    'title' => trans('core/base::tables.template'),
-                    'type' => 'customSelect',
-                    'choices' => get_page_templates(),
-                    'validate' => 'required',
-                ],
-                'has_breadcrumb' => [
-                    'title' => 'Has Breadcrumb',
-                    'type' => 'customSelect',
-                    'choices' => [1=>'Yes',0=>'No'],
-                    'validate' => 'false',
-                ],
-                'is_restricted' => [
-                    'title' => 'Is Restricted',
-                    'type' => 'customSelect',
-                    'choices' =>  [1=>'Yes',0=>'No'],
-                    'validate' => 'false',
-                ],
-                'created_at' => [
-                    'title' => trans('core/base::tables.created_at'),
-                    'type' => 'datePicker',
-                ],
+                NameBulkChange::make(),
+                SelectBulkChange::make()
+                    ->name('template')
+                    ->title(trans('core/base::tables.template'))
+                    ->choices(fn () => get_page_templates())
+                    ->validate(['required', Rule::in(array_keys(get_page_templates()))]),
+                StatusBulkChange::make(),
+                CreatedAtBulkChange::make(),
             ])
             ->queryUsing(function (Builder $query) {
                 $query->select([

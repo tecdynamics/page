@@ -24,4 +24,5 @@ return [
         'select' => '— Select —',
     ],
     'front_page' => 'Front Page',
+    '404_page' => '404 Page',
 ];
