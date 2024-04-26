@@ -2,6 +2,7 @@
 
 namespace Tec\Page\Forms;
 
+use Illuminate\Support\Facades\Request;
 use Tec\Base\Enums\BaseStatusEnum;
 use Tec\Base\Forms\FormAbstract;
 use Tec\Page\Http\Requests\PageRequest;
@@ -11,8 +12,9 @@ class PageForm extends FormAbstract
 {
     public function buildForm(): void
     {
+//	 dd($this->getModel()->is_restricted,$this->getModel());
         $this
-            ->setupModel(new Page())
+            ->setupModel($this->getModel())
             ->setValidatorClass(PageRequest::class)
             ->hasTabs()
             ->withCustomFields()
@@ -52,11 +54,13 @@ class PageForm extends FormAbstract
             ->add('has_breadcrumb', 'customSelect', [
                 'label' => 'Has Breadcrumb',
                 'required' => false,
+								'default_value'=>(int)$this->getModel()->has_breadcrumb,
                 'choices' =>[1=>'Yes',0=>'No'],
             ])
             ->add('is_restricted', 'customSelect', [
                 'label' => 'Is Restricted',
                 'required' => false,
+								'default_value'=>((int)$this->getModel()->is_restricted>0)?'1':'0',
                 'choices' => [1=>'Yes',0=>'No'],
             ])
 

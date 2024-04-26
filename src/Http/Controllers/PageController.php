@@ -59,6 +59,7 @@ class PageController extends BaseController
         return redirect(route('pages.index'));
     }
     /**
+		 * /]
      * @return string
      */
     public function create(FormBuilder $formBuilder)
