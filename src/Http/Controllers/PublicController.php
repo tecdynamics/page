@@ -2,14 +2,14 @@
 
 namespace Tec\Page\Http\Controllers;
 
+use Tec\Base\Http\Controllers\BaseController;
 use Tec\Page\Models\Page;
 use Tec\Page\Services\PageService;
 use Tec\Slug\Facades\SlugHelper;
 use Tec\Theme\Events\RenderingSingleEvent;
 use Tec\Theme\Facades\Theme;
-use Illuminate\Routing\Controller;
 
-class PublicController extends Controller
+class PublicController extends BaseController
 {
     public function getPage(string $slug, PageService $pageService)
     {

@@ -12,14 +12,11 @@ return new class () extends Migration {
             $table->string('name', 120);
             $table->longText('content')->nullable();
             $table->foreignId('user_id')->index()->nullable();
-            $table->string('image', 255)->nullable();
+            $table->string('image')->nullable();
             $table->string('template', 60)->nullable();
             $table->tinyInteger('is_featured')->default(0);
             $table->string('description', 400)->nullable();
             $table->string('status', 60)->default('published');
-            $table->longText('extra_config')->nullable();
-            $table->tinyInteger('has_breadcrumb')->nullable()->default(1);
-            $table->tinyInteger('is_restricted')->nullable()->default(0);
             $table->timestamps();
         });
     }

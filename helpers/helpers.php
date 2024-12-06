@@ -1,16 +1,16 @@
 <?php
 
+use Tec\Base\Models\BaseQueryBuilder;
 use Tec\Base\Supports\RepositoryHelper;
 use Tec\Page\Models\Page;
 use Tec\Page\Supports\Template;
-use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 if (! function_exists('get_all_pages')) {
     function get_all_pages(bool $active = true): Collection
     {
         $pages = Page::query()
-            ->when($active, function (Builder $query) {
+            ->when($active, function (BaseQueryBuilder $query) {
                 $query->wherePublished();
             })
             ->orderByDesc('created_at')

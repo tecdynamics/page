@@ -3,7 +3,6 @@
 namespace Tec\Page\Database\Traits;
 
 use Tec\ACL\Models\User;
-use Tec\Base\Facades\MetaBox;
 use Tec\Page\Models\Page;
 use Tec\Slug\Facades\SlugHelper;
 use Illuminate\Support\Arr;
@@ -22,13 +21,12 @@ trait HasPageSeeder
         foreach ($pages as $item) {
             $item['user_id'] = $userId;
 
+            /**
+             * @var Page $page
+             */
             $page = Page::query()->create(Arr::except($item, 'metadata'));
 
-            if (Arr::has($item, 'metadata')) {
-                foreach ($item['metadata'] as $key => $value) {
-                    MetaBox::saveMetaBoxData($page, $key, $value);
-                }
-            }
+            $this->createMetadata($page, $item);
 
             SlugHelper::createSlug($page);
         }

@@ -6,7 +6,6 @@ use Tec\ACL\Models\User;
 use Tec\Base\Casts\SafeContent;
 use Tec\Base\Enums\BaseStatusEnum;
 use Tec\Base\Models\BaseModel;
-use Tec\Base\Traits\EnumCastable;
 use Tec\Revision\RevisionableTrait;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -32,9 +31,6 @@ class Page extends BaseModel
         'description',
         'status',
         'user_id',
-        'has_breadcrumb',
-        'extra_config',
-        'is_restricted',
     ];
 
     protected $casts = [
@@ -42,7 +38,6 @@ class Page extends BaseModel
         'name' => SafeContent::class,
         'description' => SafeContent::class,
         'template' => SafeContent::class,
-        'extra_config' => SafeContent::class,
     ];
 
     public function user(): BelongsTo

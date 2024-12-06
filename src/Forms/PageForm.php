@@ -2,69 +2,46 @@
 
 namespace Tec\Page\Forms;
 
-use Illuminate\Support\Facades\Request;
-use Tec\Base\Enums\BaseStatusEnum;
+use Tec\Base\Forms\FieldOptions\ContentFieldOption;
+use Tec\Base\Forms\FieldOptions\DescriptionFieldOption;
+use Tec\Base\Forms\FieldOptions\NameFieldOption;
+use Tec\Base\Forms\FieldOptions\SelectFieldOption;
+use Tec\Base\Forms\FieldOptions\StatusFieldOption;
+use Tec\Base\Forms\Fields\EditorField;
+use Tec\Base\Forms\Fields\MediaImageField;
+use Tec\Base\Forms\Fields\SelectField;
+use Tec\Base\Forms\Fields\TextareaField;
+use Tec\Base\Forms\Fields\TextField;
 use Tec\Base\Forms\FormAbstract;
 use Tec\Page\Http\Requests\PageRequest;
 use Tec\Page\Models\Page;
+use Tec\Page\Supports\Template;
 
 class PageForm extends FormAbstract
 {
-    public function buildForm(): void
+    public function setup(): void
     {
-//	 dd($this->getModel()->is_restricted,$this->getModel());
         $this
-            ->setupModel($this->getModel())
+            ->model(Page::class)
             ->setValidatorClass(PageRequest::class)
             ->hasTabs()
-            ->withCustomFields()
-            ->add('name', 'text', [
-                'label' => trans('core/base::forms.name'),
-                'required' => true,
-                'attr' => [
-                    'placeholder' => trans('core/base::forms.name_placeholder'),
-                    'data-counter' => 120,
-                ],
-            ])
-            ->add('description', 'textarea', [
-                'label' => trans('core/base::forms.description'),
-                'attr' => [
-                    'rows' => 4,
-                    'placeholder' => trans('core/base::forms.description_placeholder'),
-                    'data-counter' => 400,
-                ],
-            ])
-            ->add('content', 'editor', [
-                'label' => trans('core/base::forms.content'),
-                'attr' => [
-                    'placeholder' => trans('core/base::forms.description_placeholder'),
-                    'with-short-code' => true,
-                ],
-            ])
-            ->add('status', 'customSelect', [
-                'label' => trans('core/base::tables.status'),
-                'required' => true,
-                'choices' => BaseStatusEnum::labels(),
-            ])
-            ->add('template', 'customSelect', [
-                'label' => trans('core/base::forms.template'),
-                'required' => true,
-                'choices' => get_page_templates(),
-            ])
-            ->add('has_breadcrumb', 'customSelect', [
-                'label' => 'Has Breadcrumb',
-                'required' => false,
-								'default_value'=>(int)$this->getModel()->has_breadcrumb,
-                'choices' =>[1=>'Yes',0=>'No'],
-            ])
-            ->add('is_restricted', 'customSelect', [
-                'label' => 'Is Restricted',
-                'required' => false,
-								'default_value'=>((int)$this->getModel()->is_restricted>0)?'1':'0',
-                'choices' => [1=>'Yes',0=>'No'],
-            ])
-
-            ->add('image', 'mediaImage')
+            ->add('name', TextField::class, NameFieldOption::make()->maxLength(120)->required()->toArray())
+            ->add('description', TextareaField::class, DescriptionFieldOption::make()->toArray())
+            ->add('content', EditorField::class, ContentFieldOption::make()->allowedShortcodes()->toArray())
+            ->add('status', SelectField::class, StatusFieldOption::make()->toArray())
+            ->when(Template::getPageTemplates(), function (PageForm $form, array $templates) {
+                return $form
+                    ->add(
+                        'template',
+                        SelectField::class,
+                        SelectFieldOption::make()
+                            ->label(trans('core/base::forms.template'))
+                            ->required()
+                            ->choices($templates)
+                            ->toArray()
+                    );
+            })
+            ->add('image', MediaImageField::class)
             ->setBreakFieldPoint('status');
     }
 }
